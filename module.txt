@@ -1,6 +1,6 @@
 {
 	"id" : "Fences",
-	"version" : "0.1.3",
+	"version" : "0.1.4",
 	"author" : "A'nW",
 	"displayName" : "Fence Pack",
 	"description" :	"A module adding fence blocks.",
