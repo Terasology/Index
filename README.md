@@ -2,4 +2,4 @@
 
 | ID | Version | Name | Author
 |----|---------|------|-------
-| Fences | 0.1.8 | Fence Pack | A'nW |
+| Fences | 0.1.0 | Fence Pack | A'nW |

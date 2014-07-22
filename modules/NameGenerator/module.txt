@@ -1,0 +1,9 @@
+{
+    "id" : "NameGenerator",
+    "version" : "0.3.0",
+    "author" : "msteiger and Tobias 'skaldarnar' Nett",
+    "displayName" : "Random Name Generator",
+    "description" : "This module provides randomized name for different entities.",
+    "dependencies" : [],
+    "isServerSideOnly" : false
+}
