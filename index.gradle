@@ -1,0 +1,107 @@
+apply plugin: 'java'
+apply plugin: 'groovy'
+
+import groovy.json.*
+import org.ajoberstar.grgit.*
+import org.ajoberstar.grgit.exception.GrgitException
+
+group = 'org.terasology'
+version = '0.1.0'
+
+def uploader = new Person(name: "Gooey", email: "gooey@terasology.org")
+def creds = new Credentials(username: indexerUsername, password: indexerPassword)
+
+def repoPath = project.file('module-index')
+def repo;		// will be set in syncRepo
+
+buildscript {
+    repositories {
+		mavenCentral()
+    }
+
+	dependencies {
+		classpath 'org.ajoberstar:gradle-git:0.9.0'
+	}
+}
+
+task syncRepo() << {
+	
+	try {
+		logger.lifecycle("Opening repository $repoPath")
+		repo = Grgit.open(repoPath, creds)
+		
+		logger.lifecycle("Performing pull..")
+		repo.pull(rebase: false)
+	} catch (Exception e) {
+		// TODO: find a better way to test if the repo exists
+		logger.lifecycle(e.message)
+		logger.lifecycle("Cloning repository $repoPath")
+		repo = Grgit.clone(dir: repoPath, uri: 'https://github.com/Terasology/Index.git', credentials: creds)
+	}
+}
+
+task updateModuleInfo(type: Copy, dependsOn: syncRepo) {
+
+	def targetFolder = "modules/$project.name"
+	def fname = 'module.txt'
+
+	from fname
+	into "module-index/$targetFolder"
+	
+	doLast {
+		repo.add(patterns: ["$targetFolder/$fname"])
+	}
+}
+
+task updateIndexFile(dependsOn: syncRepo) {
+
+	mustRunAfter updateModuleInfo
+
+	// TODO: define inputs/outputs
+
+	def repoRoot = repoPath;
+	def modFolder = new File(repoRoot, 'modules')
+	def modFiles = fileTree(modFolder) {
+		include '**/module.txt'
+	}
+
+	def indexFile = file("$repoRoot/README.md")
+	
+	doLast {
+			
+		logger.info("Searching folder $modFolder")
+		
+		
+		logger.lifecycle("Updating $indexFile")
+		
+		indexFile.text = '# Index\n\n'
+		indexFile.text += '| ID | Version | Name | Author\n'
+		indexFile.text += '|----|---------|------|-------\n'
+		
+		for (File file : modFiles.files) {
+			def content = file.text
+			def json = new JsonSlurper().parseText(content)
+			indexFile.text += "| $json.id | $json.version | $json.displayName | $json.author |\n"
+		}
+		
+		repo.add(patterns: [indexFile.name])
+	}
+}
+
+task updateRepo(dependsOn: [updateModuleInfo, updateIndexFile]) << {
+	// check for changes to avoid empty commits
+	def changes = repo.status().staged.allChanges
+			
+	if (!changes.isEmpty()) {
+
+		logger.lifecycle("Committing changes in $changes")
+		 
+		repo.commit(author: uploader, committer: uploader, message: "Updating module info for $project.name")
+		repo.push()
+		logger.lifecycle("Pushed commits to remote")
+		
+	} else {
+		logger.lifecycle("No files have been staged - skipping commit process")
+	}
+}
+
