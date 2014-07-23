@@ -1,7 +1,6 @@
 {
     "id" : "Core",
     "version" : "0.1.0",
-	"author" : "Movingblocks.net",
     "displayName" : "Core Gameplay",
     "description" : "This mandatory module introduces the core Terasology mechanics"
 }
