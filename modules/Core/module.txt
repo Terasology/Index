@@ -1,6 +1,7 @@
 {
     "id" : "Core",
     "version" : "0.1.0",
+    "author" : "Gooey",
     "displayName" : "Core Gameplay",
     "description" : "This mandatory module introduces the core Terasology mechanics"
 }
