@@ -1,0 +1,18 @@
+{
+    "id" : "Portals",
+    "version" : "0.1.0",
+    "author" : "Cervator, Esapetri",
+    "displayName" : "Portals",
+    "description" : "Allows portals to be created in the world, responsible for spawning assorted creatures",
+    "dependencies" : [
+            {
+                "id" : "Spawning",
+                "minVersion" : "0.1.0"
+            },
+            {
+                "id" : "Oreons",
+                "minVersion" : "0.1.0"
+            }
+    ],
+    "isServerSideOnly" : false
+}
