@@ -41,9 +41,8 @@ dependencies {
 
 task distroPC (type: Zip) {
     description = "Adds modules to a PC distribution of the game. Exact modules are declared in a distro dir like iota"
-    archiveName = "TerasologyIota.zip"
 
-    println "Project dir: $projectDir"
+    archiveName = "TerasologyIota.zip"
 
     // We base this distro on the PC version, copied in by Jenkins
     from zipTree('Terasology.zip')
@@ -53,7 +52,6 @@ task distroPC (type: Zip) {
         into "modules"
     }
     //TODO: May need to be hardened against duplicates if transitive modules/libs are later supported (or more added to base)
-
 }
 
 // Create an applet distribution with a set of modules defined in the distro dir. Relies on an Applet zip copied in by Jenkins
