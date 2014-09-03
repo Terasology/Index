@@ -1,0 +1,2 @@
+# Ignore Gradle directories that can generate when directly referencing "deep" Gradle scripts (like distros/applet)
+.gradle/

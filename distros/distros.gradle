@@ -1,0 +1,64 @@
+// This is a utility file used by differing distributions to pull in modules they're interested in
+
+// Without at least the base plugin weird things happen, like destinationDir for Zip tasks being null
+apply plugin: 'base'
+
+// TODO: With module bundling here can probably discard the early artifact resolution in the main Gradles!
+// for testing consider how to make the nanoware projects pull from the nanoware snapshot repo rather than default?
+// easy enough to publish to a specific Artifactory repo, but pulling specifically hasn't been done before
+// on a kinda-sorta related note remember that applet modules are bundled but then cache locally ..
+
+// We use both Maven Central and our own Artifactory instance, which contains module builds, extra libs, and so on
+repositories {
+    mavenCentral()
+    maven {
+        url "http://www.movingblocks.net:8081/artifactory/repo"
+    }
+}
+
+configurations {
+    modules {
+        description = 'Modules without dependencies'
+        // This is needed as otherwise any included module would also get copied in with engine libs etc
+        // TODO: this will block the feature enhancement to support third party libs in modules - unless reading those in explicitly? But then their transitives?
+        transitive = false
+    }
+}
+
+// If the execution was supplied with an extraModules property then include those modules as well
+dependencies {
+    if (project.hasProperty('extraModules')) {
+        extraModules.tokenize(' ,').each { String dependency ->
+            logger.lifecycle('Extra module: ' + dependency)
+            dependencies {
+                modules(group: 'org.terasology.modules', name: dependency, version: '+')
+            }
+        }
+    } else {
+        logger.info "No extra modules provided"
+    }
+}
+
+task distroPC (type: Zip) {
+    description = "Adds modules to a PC distribution of the game. Exact modules are declared in a distro dir like iota"
+    archiveName = "TerasologyIota.zip"
+
+    println "Project dir: $projectDir"
+
+    // We base this distro on the PC version, copied in by Jenkins
+    from zipTree('Terasology.zip')
+
+    // And what we really want to do is add the modules indicated by the gradle.properties under the distro running this
+    from(configurations.modules) {
+        into "modules"
+    }
+    //TODO: May need to be hardened against duplicates if transitive modules/libs are later supported (or more added to base)
+
+}
+
+// Create an applet distribution with a set of modules defined in the distro dir. Relies on an Applet zip copied in by Jenkins
+task distApplet {
+    description = "Adds modules to an Applet distribution of the game. Exact modules are declared in a distro dir like iota"
+    // about the same as distPC BUT we have to edit index.html too and we get a different zip
+    // while the applet LIBS are signed during the facade build the extra module jars actually do not need to be signed (they get loaded by the already-running applet)
+}
