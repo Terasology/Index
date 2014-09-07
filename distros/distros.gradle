@@ -42,7 +42,8 @@ dependencies {
 task distroPC (type: Zip) {
     description = "Adds modules to a PC distribution of the game. Exact modules are declared in a distro dir like iota"
 
-    archiveName = "TerasologyIota.zip"
+    archiveName = zipFileName
+    duplicatesStrategy = 'exclude'
 
     // We base this distro on the PC version, copied in by Jenkins
     from zipTree('Terasology.zip')
@@ -55,8 +56,36 @@ task distroPC (type: Zip) {
 }
 
 // Create an applet distribution with a set of modules defined in the distro dir. Relies on an Applet zip copied in by Jenkins
-task distApplet {
+task distroApplet (type: Zip) {
     description = "Adds modules to an Applet distribution of the game. Exact modules are declared in a distro dir like iota"
-    // about the same as distPC BUT we have to edit index.html too and we get a different zip
-    // while the applet LIBS are signed during the facade build the extra module jars actually do not need to be signed (they get loaded by the already-running applet)
+
+    archiveName = zipFileName
+    duplicatesStrategy = 'exclude'
+
+    // Make a list of the modules we got from the distro
+    def modules = []
+    configurations.modules.each {
+        modules += it.getName()
+    }
+
+    // We base this distro on the Applet version, copied in by Jenkins
+    from zipTree('BaseApplet.zip')
+
+    // Find and update the index.html while we create the new zip
+    filesMatching('index.html') {
+        filter { String line ->
+            // Update the line with the "module" parameter to include the ones requested by the distro
+            if (line.contains('param name=\"modules\"')) {
+                def insertionPoint = line.indexOf('value="') + 7
+                line.substring(0, insertionPoint) + modules.join(", ") + ", " + line.substring(insertionPoint)
+            } else {
+                "$line"
+            }
+        }
+    }
+
+    // And again add in the modules required by the distro
+    from(configurations.modules) {
+        into "modules"
+    }
 }
