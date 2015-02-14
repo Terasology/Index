@@ -1,0 +1,90 @@
+
+enum Bundle {
+    win32,
+    win64,
+    linux32,
+    linux64,
+    macosx;
+
+    File jreArchive
+}
+
+task buildBundles {}
+
+def terasologyZip = zipTree("${projectDir}/TerasologyOmega.zip")
+
+Bundle.each { arch ->
+    arch.jreArchive = new File("${projectDir}/jres/${arch}.zip")
+    if (!arch.jreArchive.exists()) {
+        throw new RuntimeException("Dependency ${arch.jreArchive} is missing.")
+    }
+
+    def zipBase = ""
+    // Rebase everything in the zip file for MacOS X
+    if (arch == Bundle.macosx) {
+        zipBase = "Terasology.app/Contents/Resources/"
+    }
+
+    def buildBundleTask = task("zip" + arch.name().capitalize(), type: Zip) {
+        archiveName "terasology-${arch}.zip"
+        destinationDir buildDir
+        from(zipTree(arch.jreArchive)) {
+            into "${zipBase}jre"
+        }
+        from(terasologyZip) {
+            // Platform independent files
+            include "LICENSE"
+            include "README"
+            include "NOTICE"
+            include "VERSION"
+            include "libs/**/*"
+            include "modules/**/*"
+            into zipBase
+        }
+        /*
+            Copy only the files relevant to the platform we are bundling the JRE for.
+            I.e only copy 32-bit natives for windows if we bundle the 32-bit JRE.
+         */
+        if (arch == Bundle.win32) {
+            from (terasologyZip) {
+                include "natives/windows/*.dll"
+                exclude "natives/windows/*64.dll"
+            }
+            from (terasologyZip) {
+                include "Terasology.x86.exe"
+                rename { "Terasology.exe" }
+            }
+        } else if (arch == Bundle.win64) {
+            from (terasologyZip) {
+                include "natives/windows/*64.dll"
+            }
+            from (terasologyZip) {
+                include "Terasology.x64.exe"
+                rename { "Terasology.exe" }
+            }
+        } else if (arch == Bundle.linux32) {
+            from (terasologyZip) {
+                include "natives/linux/*.so"
+                exclude "natives/linux/*64.so"
+            }
+            from (terasologyZip) {
+                include "run_linux.sh"
+                rename { "terasology.sh" }
+            }
+        } else if (arch == Bundle.linux64) {
+            from (terasologyZip) {
+                include "natives/linux/*64.so"
+            }
+            from (terasologyZip) {
+                include "run_linux.sh"
+                rename { "terasology.sh" }
+            }
+        } else if (arch == Bundle.macosx) {
+            from ("macosx") {
+                include "**/*"
+                into "Terasology.app/Contents"
+            }
+        }
+    }
+    buildBundles.dependsOn buildBundleTask
+}
