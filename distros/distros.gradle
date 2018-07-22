@@ -18,6 +18,10 @@ repositories {
     maven {
         url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
     }
+	// Snowplow repository for the snowplow dependency of the server facade
+	maven {
+		url "http://maven.snplow.com/releases"
+	}
 }
 
 configurations {
@@ -26,6 +30,9 @@ configurations {
         // This is needed as otherwise any included module would also get copied in with engine libs etc
         // TODO: this will block the feature enhancement to support third party libs in modules - unless reading those in explicitly? But then their transitives?
         transitive = false
+    }
+    facades {
+        description = 'Facades with dependencies'
     }
 }
 
@@ -41,10 +48,18 @@ dependencies {
     } else {
         logger.info "No extra modules provided"
     }
+	if (project.hasProperty('useFacadeServer') && project.property('useFacadeServer') == "true") {
+        logger.lifecycle("Extra facade: Server")
+        dependencies {
+            facades(group: 'org.terasology.web', name: 'FacadeServer', version: '+')
+        }
+	} else {
+        logger.info "Not using Facade Server"
+    }
 }
 
 task distroPC (type: Zip) {
-    description = "Adds modules to a PC distribution of the game. Exact modules are declared in a distro dir like iota"
+    description = "Adds modules and facades to a PC distribution of the game. Exact modules and facades are declared in a distro dir like iota"
 
     archiveName = zipFileName
     duplicatesStrategy = 'exclude'
@@ -55,6 +70,28 @@ task distroPC (type: Zip) {
     // And what we really want to do is add the modules indicated by the gradle.properties under the distro running this
     from(configurations.modules) {
         into "modules"
+    }
+
+    // We also want to add the facades given by the gradle.properties file
+    from(configurations.facades) {
+        into "libs"
+    }
+    if (project.hasProperty('useFacadeServer') && project.property('useFacadeServer') == "true") {
+        // Search through the list of facades to find the FacadeServer jar
+        configurations.facades.asFileTree.each {
+            if (it.name.contains("FacadeServer")) {
+                // Copy the contents of the launchScripts folder from the FacadeSerer jar into the home directory
+                // while also not copying the folder itself
+                from(zipTree(it)) {
+                    exclude "launchScripts"
+                    include "launchScripts/**"
+                    eachFile { fileCopyDetails ->
+                        fileCopyDetails.path = fileCopyDetails.path.replace("launchScripts/", "")
+                    }
+                }
+            }
+        }
+        into ""
     }
     //TODO: May need to be hardened against duplicates if transitive modules/libs are later supported (or more added to base)
 }
