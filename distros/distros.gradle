@@ -92,6 +92,11 @@ task distroPC (type: Zip) {
             }
         }
         into ""
+	
+	//Copy the frontend files (the zip should be put in distros/omega by Jenkins)
+	from(zipTree('FacadeServer-frontend.zip')) {
+	    into "FacadeServer-frontend"
+	}
     }
     //TODO: May need to be hardened against duplicates if transitive modules/libs are later supported (or more added to base)
 }
