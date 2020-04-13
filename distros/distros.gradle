@@ -92,46 +92,13 @@ task distroPC (type: Zip) {
             }
         }
         into ""
-	
-	//Copy the frontend files (the zip should be put in distros/omega by Jenkins)
-	from(zipTree('FacadeServer-frontend.zip')) {
-	    into "FacadeServer-frontend"
-	}
-    }
-    //TODO: May need to be hardened against duplicates if transitive modules/libs are later supported (or more added to base)
-}
 
-// Create an applet distribution with a set of modules defined in the distro dir. Relies on an Applet zip copied in by Jenkins
-task distroApplet (type: Zip) {
-    description = "Adds modules to an Applet distribution of the game. Exact modules are declared in a distro dir like iota"
-
-    archiveName = zipFileName
-    duplicatesStrategy = 'exclude'
-
-    // Make a list of the modules we got from the distro
-    def modules = []
-    configurations.modules.each {
-        modules += it.getName()
-    }
-
-    // We base this distro on the Applet version, copied in by Jenkins
-    from zipTree('BaseApplet.zip')
-
-    // Find and update the index.html while we create the new zip
-    filesMatching('index.html') {
-        filter { String line ->
-            // Update the line with the "module" parameter to include the ones requested by the distro
-            if (line.contains('param name=\"modules\"')) {
-                def insertionPoint = line.indexOf('value="') + 7
-                line.substring(0, insertionPoint) + modules.join(", ") + ", " + line.substring(insertionPoint)
-            } else {
-                "$line"
+        if (new File('FacadeServer-frontend.zip').exists()) {
+            //Copy the frontend files (the zip should be put in distros/omega by Jenkins)
+            from(zipTree('FacadeServer-frontend.zip')) {
+                into "FacadeServer-frontend"
             }
         }
     }
-
-    // And again add in the modules required by the distro
-    from(configurations.modules) {
-        into "modules"
-    }
+    //TODO: May need to be hardened against duplicates if transitive modules/libs are later supported (or more added to base)
 }

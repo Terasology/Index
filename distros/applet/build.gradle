@@ -1,2 +1,0 @@
-// This file is just here to serve as an entry point that then picks up stuff from the gradle.properties in the same dir
-apply from: '../distros.gradle'
