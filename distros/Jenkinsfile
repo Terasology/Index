@@ -1,0 +1,38 @@
+node ("light-java") {
+    stage('Prepare') {
+        echo "Going to check out the things !"
+        checkout scm
+
+        def buildHarnessJob = "Terasology/engine/develop"
+        // Determine job path to copy from based on what job is actually running this
+        if (env.JOB_NAME.equals("Terasology/Omega/develop")) {
+            echo "Building dev Omega using the engine dev build harness from $buildHarnessJob"
+        } else if (env.JOB_NAME.equals("Terasology/Omega/master")) {
+            buildHarnessJob = "Terasology/engine/master"
+            echo "Building release Omega using the engine release build harness from $buildHarnessJob"
+        } else if (env.JOB_NAME.equals("Nanoware/Omega/develop")) {
+            buildHarnessJob = "Nanoware/Terasology/develop"
+            echo "Building Nanoware dev Omega using the engine dev build harness from $buildHarnessJob"
+        } else if (env.JOB_NAME.equals("Nanoware/Omega/master")) {
+            buildHarnessJob = "Nanoware/Terasology/master"
+            echo "Building Nanoware release Omega using the engine release build harness from $buildHarnessJob"
+        } else {
+            echo "*** WARNING *** Omega packager running from an unexpected job, falling back on copying the engine build harness from $buildHarnessJob - job name was " + env.JOB_NAME
+        }
+
+        echo "Copying in the build harness from an engine job"
+        copyArtifacts(projectName: buildHarnessJob, filter: "*, gradle/wrapper/**", selector: upstream(fallbackToLastSuccessful: true))
+        copyArtifacts(projectName: buildHarnessJob, filter: "facades/PC/build/distributions/Terasology.zip, build/resources/main/org/terasology/version/versionInfo.properties",  target: 'distros/omega', flatten: true, selector: upstream(fallbackToLastSuccessful: true))
+        sh 'chmod +x gradlew'
+    }
+
+    stage('Package') {
+        sh './gradlew --refresh-dependencies -b distros/omega/build.gradle distroPC'
+        sh '''
+            cd distros/omega/build/distributions/
+            md5sum *.zip > md5sums.txt
+            sha256sum *.zip > sha256sums.txt
+        '''
+        archiveArtifacts 'distros/omega/build/distributions/*.zip , distros/omega/build/distributions/*sums.txt, distros/omega/versionInfo.properties'
+    }
+}
