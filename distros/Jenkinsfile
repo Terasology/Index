@@ -1,3 +1,18 @@
+// Minor housekeeping logic
+boolean specialBranch = env.BRANCH_NAME.equals("master") || env.BRANCH_NAME.equals("develop")
+
+// String to use in a property that determines artifact pruning (has to be a String not a number)
+String artifactBuildsToKeep = "2"
+if (specialBranch) {
+    artifactBuildsToKeep = "20"
+}
+
+properties([
+    // Flag for Jenkins to discard attached artifacts after x builds
+    buildDiscarder(logRotator(artifactNumToKeepStr: artifactBuildsToKeep))
+])
+
+// Main pipeline definition
 node ("light-java") {
     stage('Prepare') {
         echo "Going to check out the things !"
