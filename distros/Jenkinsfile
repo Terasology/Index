@@ -37,7 +37,7 @@ node ("light-java") {
 
         echo "Copying in the build harness from an engine job"
         copyArtifacts(projectName: buildHarnessJob, filter: "*, gradle/wrapper/**", selector: upstream(fallbackToLastSuccessful: true))
-        copyArtifacts(projectName: buildHarnessJob, filter: "facades/PC/build/distributions/Terasology.zip, engine/build/resources/main/org/terasology/version/versionInfo.properties",  target: 'distros/omega', flatten: true, selector: upstream(fallbackToLastSuccessful: true))
+        copyArtifacts(projectName: buildHarnessJob, filter: "facades/PC/build/distributions/Terasology.zip, engine/build/resources/main/org/terasology/engine/version/versionInfo.properties",  target: 'distros/omega', flatten: true, selector: upstream(fallbackToLastSuccessful: true))
         sh 'chmod +x gradlew'
     }
 
