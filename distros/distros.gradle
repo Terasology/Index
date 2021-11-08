@@ -18,10 +18,17 @@ repositories {
     maven {
         url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
     }
-	// Snowplow repository for the snowplow dependency of the server facade
-	maven {
-		url "http://maven.snplow.com/releases"
-	}
+    
+    // TODO MYSTERY: As of November 7th 2011 virtual-repo-live could no longer be relied on for latest snapshots - Pro feature?
+    // We've been using it that way for *years* and nothing likewise changed in the area for years as well. This seems to work ....
+    maven {
+        url "http://artifactory.terasology.org/artifactory/terasology-snapshot-local"
+    }
+    
+    // Snowplow repository for the snowplow dependency of the server facade
+    maven {
+	url "http://maven.snplow.com/releases"
+    }
 }
 
 configurations {
