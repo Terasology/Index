@@ -3,34 +3,25 @@
 // Without at least the base plugin weird things happen, like destinationDir for Zip tasks being null
 apply plugin: 'base'
 
-// TODO: With module bundling here can probably discard the early artifact resolution in the main Gradles!
-// for testing consider how to make the nanoware projects pull from the nanoware snapshot repo rather than default?
-// easy enough to publish to a specific Artifactory repo, but pulling specifically hasn't been done before
-// on a kinda-sorta related note remember that applet modules are bundled but then cache locally ..
-
 // We use both Maven Central and our own Artifactory instance, which contains module builds, extra libs, and so on
 repositories {
-    // External libs - jcenter is Bintray and is supposed to be a superset of Maven Central, but do both just in case
-    jcenter()
     mavenCentral()
 
     // MovingBlocks Artifactory instance for libs not readily available elsewhere plus our own libs
     maven {
-        url "http://artifactory.terasology.org/artifactory/virtual-repo-live"
-        allowInsecureProtocol true // 😱
+        url "https://artifactory.terasology.io/artifactory/virtual-repo-live"
     }
 
-    // TODO MYSTERY: As of November 7th 2011 virtual-repo-live could no longer be relied on for latest snapshots - Pro feature?
+    // TODO MYSTERY: As of November 7th 2021 virtual-repo-live could no longer be relied on for latest snapshots - Pro feature?
     // We've been using it that way for *years* and nothing likewise changed in the area for years as well. This seems to work ....
     maven {
-        url "http://artifactory.terasology.org/artifactory/terasology-snapshot-local"
-        allowInsecureProtocol true // 😱
+        url "https://artifactory.terasology.io/artifactory/terasology-snapshot-local"
     }
 
     // Snowplow repository for the snowplow dependency of the server facade
     maven {
 	     url "http://maven.snplow.com/releases"
-       allowInsecureProtocol true // 😱
+       allowInsecureProtocol true // 😱 - or obsolete? Can find old broken links to Bintray but do we need it here?
     }
 }
 
