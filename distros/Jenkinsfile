@@ -13,7 +13,7 @@ properties([
 ])
 
 // Main pipeline definition
-node ("light-java") {
+node ("light && java17") {
     stage('Prepare') {
         echo "Going to check out the things !"
         checkout scm
