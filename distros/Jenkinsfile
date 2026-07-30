@@ -42,7 +42,7 @@ node ("light-java") {
     }
 
     stage('Package') {
-        sh './gradlew --refresh-dependencies -b distros/omega/build.gradle distroPC'
+        sh './gradlew --refresh-dependencies -p distros/omega distroPC'
         sh '''
             cd distros/omega/build/distributions/
             md5sum *.zip > md5sums.txt
