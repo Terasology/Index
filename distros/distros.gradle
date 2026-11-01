@@ -67,7 +67,7 @@ dependencies {
 task distroPC (type: Zip) {
     description = "Adds modules and facades to a PC distribution of the game. Exact modules and facades are declared in a distro dir like iota"
 
-    archiveName = zipFileName
+    archiveFileName = zipFileName
     duplicatesStrategy = 'exclude'
 
     // We base this distro on the PC version, copied in by Jenkins
